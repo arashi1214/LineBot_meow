@@ -11,17 +11,18 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
 )
 
+import requests
+from bs4 import BeautifulSoup
+
 app = Flask(__name__)
 
 line_bot_api = LineBotApi(os.environ.get('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.environ.get('CHANNEL_SECRET'))
 
 
-#flask路由部分
 @app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
-    # 取得reques送來的認證
     signature = request.headers['X-Line-Signature']
 
     # get request body as text
@@ -30,7 +31,6 @@ def callback():
 
     # handle webhook body
     try:
-        #把body, signature丟給handle_message
         handler.handle(body, signature)
     except InvalidSignatureError:
         print("Invalid signature. Please check your channel access token/channel secret.")
@@ -41,12 +41,21 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    print(event)
-    cat_shoud = len(event.message.text) * "喵"
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=cat_shoud))
+    if event.message.text == '本周新片':
+        r = requests.get('http://www.atmovies.com.tw/movie/new/')
+        r.encoding = 'utf-8'
 
+        soup = BeautifulSoup(r.text, 'lxml')
+        content = []
+        for i, data in enumerate(soup.select('div.filmTitle a')):
+            if i > 20:
+                break
+            content.append(data.text + '\n' + 'http://www.atmovies.com.tw' + data['href'])
 
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text='\n\n'.join(content))
+        )
+        
 if __name__ == "__main__":
     app.run()
