@@ -23,8 +23,7 @@ handler = WebhookHandler(os.environ.get('CHANNEL_SECRET'))
 Favorability = {}
 cat_toy = {'普通的逗貓棒':'https://i.imgur.com/jtbU0Gi.png', '一條魚':'https://i.imgur.com/ncK4QZL.png', '一隻老鼠':'https://i.imgur.com/QKxHgMj.png'}
 cat_food = {'點心':'https://i.imgur.com/wLs0yHy.png', '罐頭':'https://i.imgur.com/g4iJv1x.png', '貓糧':'https://i.imgur.com/9ZqH3Rk.png'}
-Emergencies = ['貓貓趴在你的電腦鍵盤上，偷偷看著你', '貓貓睡著了，請不要吵到他']
-love = {'100':'https://i.imgur.com/zOI0H0i.png'}
+Emergencies = ['貓貓趴在你的電腦鍵盤上，偷偷看著你', '貓貓睡著了，請不要吵到他', '貓貓蹲在你背後，她感覺餓了', '貓貓坐在你腳上，蹭了你的肚子']
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -76,7 +75,6 @@ def handle_message(event):
             )
         )
 
-
     elif event.message.text == "逗貓":
 
         reply = TemplateSendMessage(
@@ -107,13 +105,15 @@ def handle_message(event):
         cat_talk = str(Favorability[event.source.user_id])
 
 
+
+
     if event.message.text == "逗貓":
         line_bot_api.reply_message(event.reply_token, reply)
     elif event.message.text in cat_toy:
 
         add = random.randint(-10,10)
         if add <= 0:
-            cat_talk = "去去，貓貓不想跟你玩了"
+            cat_talk = random.choice(["去去，貓貓不想跟你玩了", "去去，奴才走"])
         else:
             cat_talk = random.choice(["我才沒有想跟你玩呢!(撲過去", "走開，我才沒有要跟你玩呢(偷喵"])
 
@@ -136,7 +136,7 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, reply)
     elif event.message.text in cat_food:
 
-        add = random.randint(-10,30)
+        add = random.randint(-15,30)
         if add <= 0:
             cat_talk = "貓貓覺得難吃"
         else:
@@ -159,12 +159,31 @@ def handle_message(event):
 
 
     else:
-        line_bot_api.reply_message(
-            event.reply_token,
+        if  Favorability[event.source.user_id] >= 100:
+            reply = [
+            ImageSendMessage(
+            original_content_url='https://i.imgur.com/zOI0H0i.png',
+            preview_image_url='https://i.imgur.com/zOI0H0i.png'
+            ),
             TextSendMessage(text=cat_talk + meow)
-        )
+            ]
+
+            line_bot_api.reply_message(event.reply_token,reply)
+        elif  Favorability[event.source.user_id] >= 75:
+            if random.randint(0,100) // 5 == 0:
+                reply = [
+                TextSendMessage(text=random.choice(Emergencies)),
+                TextSendMessage(text=cat_talk + meow)
+                ]
+            else:
+                reply = TextSendMessage(text=cat_talk + meow)
+
+            line_bot_api.reply_message(event.reply_token,reply)
+        else:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=cat_talk + meow)
+            )
         
 if __name__ == "__main__":
     app.run()
-
-# https://cat-for-you.herokuapp.com 
