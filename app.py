@@ -41,21 +41,13 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    if event.message.text == '本周新片':
-        r = requests.get('http://www.atmovies.com.tw/movie/new/')
-        r.encoding = 'utf-8'
 
-        soup = BeautifulSoup(r.text, 'lxml')
-        content = []
-        for i, data in enumerate(soup.select('div.filmTitle a')):
-            if i > 20:
-                break
-            content.append(data.text + '\n' + 'http://www.atmovies.com.tw' + data['href'])
+    meow = len(event.message.text) * "喵"
 
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text='\n\n'.join(content))
-        )
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=meow)
+    )
         
 if __name__ == "__main__":
     app.run()
