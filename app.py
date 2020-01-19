@@ -19,6 +19,7 @@ app = Flask(__name__)
 line_bot_api = LineBotApi(os.environ.get('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.environ.get('CHANNEL_SECRET'))
 
+Favorability = {}
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -45,7 +46,16 @@ def handle_message(event):
     reply = ""
     meow = len(event.message.text) * "喵"
     if event.message.text == "餵食":
-        reply = "您要餵食貓糧還是罐頭?"
+        reply = "謝謝您的餵食"
+        if event.source.user_id not in Favorability:
+            Favorability[event.source.user_id] = 0
+        else:
+            Favorability[event.source.user_id] = Favorability[event.source.user_id] + 5
+        print(Favorability)
+    elif event.message.text == "逗貓":
+        pass
+    elif event.message.text == "查看好感度":
+        reply = Favorability[event.source.user_id]
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply + meow)
@@ -53,3 +63,5 @@ def handle_message(event):
         
 if __name__ == "__main__":
     app.run()
+
+# https://cat-for-you.herokuapp.com
