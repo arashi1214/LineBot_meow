@@ -42,11 +42,13 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
 
+    reply = ""
     meow = len(event.message.text) * "喵"
-
+    if event.message.text == "餵食":
+        reply = "您要餵食貓糧還是罐頭?"
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=meow)
+        TextSendMessage(text=reply + meow)
     )
         
 if __name__ == "__main__":
